@@ -32,7 +32,7 @@ passport.use(
 passport.use(
     new JwtStrategy(
         {
-            secretOrKey: process.env.SECRET_KEY,
+            secretOrKey: process.env.SECRET_KEY,                   // <--- Проверяет подлинность jwt
             jwtFromRequest: ExtractJwt.fromHeader('token')
         },
         async (payload: {data: UserModelInterface}, done): Promise<void> => {
