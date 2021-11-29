@@ -1,4 +1,5 @@
 import { Schema, model, Document } from 'mongoose'
+// import mongooseUniqueValidator from 'mongoose-unique-validator';
 
 export interface UserModelInterface {
     _id?: string;
@@ -52,7 +53,7 @@ const UserSchema = new Schema<UserModelInterface>(
         website: String
     },
     { timestamps: true }                     //<--- Записывает в документ дату создания и дату обновления документа
-)
+)              //<--- Проверяет уникальность указанных значений и возвращает подробную ошибку (mongoDB просто возвращает код ошибки)
 
 UserSchema.set('toJSON', {
     transform: function (_, obj) {

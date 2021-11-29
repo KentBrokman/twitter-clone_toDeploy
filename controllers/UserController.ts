@@ -121,10 +121,10 @@ class UserController {
             }
             
             const user = await UserModel.findOne({ confirmHash: String(hash) }).exec()
-
+            
             if (user) {
                 user.confirmed = true
-                user.save()
+                await user.save()
 
                 res.status(201).json({message: 'success', data: user})
             } else {

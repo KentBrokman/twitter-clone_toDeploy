@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
-import './core/db'
+import './core/db'    // Запускает указанный модуль, ничего не импортирует. (в нашем случае запускает подключение к базе данных)
 
 import express from 'express'
 
