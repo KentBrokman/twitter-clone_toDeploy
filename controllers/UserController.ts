@@ -1,10 +1,10 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import { validationResult } from 'express-validator'
-import { UserModel, UserModelInterface, UserModelDocumentInterface} from '../models/UserModel'
+import { UserModel, UserModelInterface, UserModelDocumentInterface } from '../models/UserModel'
 import { generateMD5 } from '../utils/generateHash'
 import { isValidObjectId } from '../utils/isValidObjectId'
-import {sendEmail} from '../utils/sendEmail'
+// import { sendEmail } from '../utils/sendEmail'
 
 class UserController {
     async index(_: any, res: express.Response): Promise<void> {
@@ -26,27 +26,29 @@ class UserController {
     async show(req: express.Request, res: express.Response): Promise<void> {
         try {
             const userId = req.params.id
-            if(!isValidObjectId(userId)) {
-                res.status(400).json({message: 'Пользователь не найден'})
+
+            if (!isValidObjectId(userId)) {                                                              // Is this check useful?
+                res.status(400).json({ message: 'id пользователя не является mongoose.Types.ObjectId' })
                 return
             }
-            
-            const user = await UserModel.findById(userId).exec()
 
-            
-            
+            const user = await UserModel.findById(userId).populate(['images.profilePhoto', 'images.backgroundPhoto']).exec()
+
+
+
             if (user) {
-                res.status(201).json({message: 'success', data: user})
+                res.status(201).json({ message: 'success', data: user })
             } else {
-                res.status(404).json({message: 'Пользователь не найден'})
+                res.status(404).json({ message: 'Пользователь не найден' })
             }
         } catch (e) {
-            res.status(500).json({error: e, message: 'Вероятно неверный формат данных'})
+            res.status(500).json({ error: e, message: 'Вероятно неверный формат данных' })
         }
     }
 
     async create(req: express.Request, res: express.Response): Promise<void> {
         try {
+
             const errors = validationResult(req)
             if (!errors.isEmpty()) {
                 res.status(400).json({ errors: errors.array() })
@@ -58,30 +60,32 @@ class UserController {
             const data: UserModelInterface = {
                 email: req.body.email,
                 fullName: req.body.fullName,
-                userName: req.body.userName,
+                nickname: req.body.nickname,
                 password: generateMD5(req.body.password + process.env.SECRET_KEY),
-                confirmHash: generateMD5(process.env.SECRET_KEY + randomStr || randomStr)
+                confirmHash: generateMD5(process.env.SECRET_KEY + randomStr || randomStr),
+                confirmed: true
             }
 
             const user = await UserModel.create(data)
 
-            sendEmail(
-                {
-                    from: "admin@twitter.com",
-                    to: data.email,
-                    subject: "Подтверждение почты Twitter-Clone Tutorial",
-                    html: `Для того, чтобы подтвердить почту, перейдите <a href="http://localhost:${process.env.PORT}/auth/verify?hash=${data.confirmHash}">по этой ссылке</a>`,
-                },
-                function (err: Error | null) {
-                    if (err) {
-                        res.status(500).json({message: err})
-                    } else {
-                        res.status(200).json({ data: user })
-                    }
-                }
-            );
+            res.status(200).json({data: user})
+            // sendEmail(
+            //     {
+            //         from: "admin@twitter.com",
+            //         to: data.email,
+            //         subject: "Подтверждение почты Twitter-Clone Tutorial",
+            //         html: `Для того, чтобы подтвердить почту, перейдите <a href="http://localhost:${process.env.PORT}/auth/verify?hash=${data.confirmHash}">по этой ссылке</a>`,
+            //     },
+            //     function (err: Error | null) {
+            //         if (err) {
+            //             res.status(500).json({ message: err })
+            //         } else {
+            //             res.status(200).json({ data: user })
+            //         }
+            //     }
+            // );
         } catch (e) {
-            res.status(500).json({message: e})
+            res.status(500).json({ message: e })
         }
     }
 
@@ -92,23 +96,24 @@ class UserController {
                 status: 'success',
                 data: {
                     ...user,
-                    token: jwt.sign({data: req.user}, process.env.SECRET_KEY as string, {expiresIn: "1d"})
+                    token: jwt.sign({ data: user._id }, process.env.SECRET_KEY as string, { expiresIn: "1d" })
                 }
             })
         } catch (e) {
-            res.status(500).json({message: e})
+            res.status(500).json({ message: e })
         }
     }
 
     async getUserInfo(req: express.Request, res: express.Response): Promise<void> {
         try {
             const user = (req.user as UserModelDocumentInterface).toJSON()      // Используем UserModelDocumentInterface, чтобы привести req.user из паспорта в читаемый вид
+
             res.status(200).json({
                 status: 'success',
                 data: user
             })
         } catch (e) {
-            res.status(500).json({message: e})
+            res.status(500).json({ message: e, error: e })
         }
     }
 
@@ -119,19 +124,40 @@ class UserController {
                 res.status(400).send()
                 return
             }
-            
+
             const user = await UserModel.findOne({ confirmHash: String(hash) }).exec()
-            
+
             if (user) {
                 user.confirmed = true
                 await user.save()
 
-                res.status(201).json({message: 'success', data: user})
+                res.status(201).json({ message: 'success', data: user })
             } else {
-                res.status(404).json({message: 'Пользователь не найден'})
+                res.status(404).json({ message: 'Пользователь не найден' })
             }
         } catch (e) {
-            res.status(500).json({message: e})
+            res.status(500).json({ message: e })
+        }
+    }
+
+    async update(req: express.Request, res: express.Response): Promise<void> {
+        try {
+            const user = req.user as UserModelInterface
+            if (user) {
+                const result = await UserModel.findByIdAndUpdate(user._id, {
+                    fullName: req.body.fullName,
+                    additionalInfo: {
+                        location: req.body.location,
+                        about: req.body.about,
+                        website: req.body.website
+                    }
+                }, {new: true})
+                res.status(201).json({ message: 'success', data: result })
+            } else {
+                res.status(404).json({ message: 'Нет такого твита' })
+            }
+        } catch (e) {
+            res.status(500).json({ message: e })
         }
     }
 }

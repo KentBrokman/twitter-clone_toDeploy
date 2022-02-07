@@ -1,18 +1,30 @@
 import { Schema, model, Document } from 'mongoose'
+import { ImageUploadModelInterface } from './ImageUploadModel';
 // import mongooseUniqueValidator from 'mongoose-unique-validator';
 
 export interface UserModelInterface {
     _id?: string;
     email: string;
     fullName: string;
-    userName: string;
+    nickname: string;
     password: string;
     confirmHash: string;
     confirmed?: boolean;
-    location?: string;
-    about?: string;
-    website?: string;
+    additionalInfo?: {
+        location?: string;
+        about?: string;
+        website?: string;
+    };
+    images?: {
+        profilePhoto?: null | ImageUploadModelInterface;
+        backgroundPhoto?: null | ImageUploadModelInterface;
+    };
     tweets?: string[];
+    // image?:  null | ImageUploadModelInterface | Schema.Types.ObjectId; // Почему не работает
+}
+
+export interface UserUpdateInterface {
+    
 }
 
 export type UserModelDocumentInterface = UserModelInterface & Document
@@ -29,13 +41,21 @@ const UserSchema = new Schema<UserModelInterface>(
             required: true,
             type: String
         },
-        userName: {
+        nickname: {
             unique: true,
             required: true,
             type: String
         },
-        location: {
-            type: String
+        additionalInfo: {
+            location: {
+                type: String
+            },
+            about: {
+                type: String
+            },
+            website: {
+                type: String
+            },
         },
         password: {
             required: true,
@@ -49,8 +69,18 @@ const UserSchema = new Schema<UserModelInterface>(
             required: true,
             type: String
         },
-        about: String,
-        website: String
+        images: {
+            profilePhoto: {
+                type: Schema.Types.ObjectId,
+                ref: 'ImageUpload',
+                default: null
+            },
+            backgroundPhoto: {
+                type: Schema.Types.ObjectId,
+                ref: 'ImageUpload',
+                default: null
+            }
+        }
     },
     { timestamps: true }                     //<--- Записывает в документ дату создания и дату обновления документа
 )              //<--- Проверяет уникальность указанных значений и возвращает подробную ошибку (mongoDB просто возвращает код ошибки)

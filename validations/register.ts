@@ -8,7 +8,7 @@ export const registerValidations = [
     body('fullName')
         .isString().withMessage('Неверный формат имени')
         .isLength({ min: 2, max: 40 }).withMessage('Неверная длина имени. Допустимые значения от 2 до 40'),
-    body('userName')
+    body('nickname')
         .isString().withMessage('Неверный формат логина')
         .isLength({ min: 2, max: 40 }).withMessage('Неверная длина логина. Допустимые значения от 2 до 40'),
     body('password')

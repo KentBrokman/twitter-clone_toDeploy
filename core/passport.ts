@@ -9,9 +9,9 @@ import { Error } from 'mongoose';
 
 passport.use(
     new LocalStrategy(
-        async (username, password, done): Promise<void> => {                        //<--- passport ожидает объект именно с такими свойствами (username, password). Но их можно поменять, предав в LocalStratagy первым аргументоп оъект с другими названиями полей
+        async (username, password, done): Promise<void> => {                        //<--- passport ожидает объект именно с такими свойствами (username, password). Но их можно поменять, передав в LocalStratagy первым аргументоп объект с другими названиями полей
             try {
-                const user = await UserModel.findOne({ $or: [{ email: username }, { userName: username }] }).exec()
+                const user = await UserModel.findOne({ $or: [{ email: username }, { nickname: username }] }).populate('images.profilePhoto images.backgroundPhoto').exec()
 
                 if (!user) {
                     return done(null, false)
@@ -35,9 +35,9 @@ passport.use(
             secretOrKey: process.env.SECRET_KEY,                   // <--- Проверяет подлинность jwt
             jwtFromRequest: ExtractJwt.fromHeader('token')
         },
-        async (payload: {data: UserModelInterface}, done): Promise<void> => {
+        async (payload: {data: UserModelInterface['_id']}, done): Promise<void> => {
             try {
-                const user = await UserModel.findById(payload.data._id).exec()
+                const user = await UserModel.findById(payload.data).populate('images.profilePhoto images.backgroundPhoto').exec()                
 
                 if (!user) {
                     return done(null, false)
