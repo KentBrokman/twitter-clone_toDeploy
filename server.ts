@@ -5,6 +5,7 @@ dotenv.config()     // loads environment variables from a .env file into process
 import './core/db'    // Запускает указанный модуль, ничего не импортирует. (в нашем случае запускает подключение к базе данных)
 
 import express from 'express';
+import path from 'path'
 // import express from 'express'
 import { uloadImageWithTweet, uploadProfilePhoto, uploadBackgroundPhoto } from './core/multer'
 
@@ -26,6 +27,8 @@ const app = express()
 
 app.use(express.json())                       // < --- Читает json в js
 app.use(passport.initialize())
+app.use('/', express.static(path.join(__dirname, 'client', 'build')))
+
 
 
 app.get('/users', UserCtrl.index)
@@ -51,7 +54,9 @@ app.post('/uploadBackgroundPhoto', passport.authenticate('jwt'), uploadBackgroun
 
 app.use(errorHandler)
 
-
+app.get('*', (_, res) => {
+  res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+})
 
 const PORT = process.env.PORT
 

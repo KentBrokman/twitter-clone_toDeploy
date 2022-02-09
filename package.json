@@ -29,14 +29,16 @@
     "passport": "^0.5.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
-    "socket.io": "^4.4.1",
     "streamifier": "^0.1.1",
-    "ts-node": "^10.3.0",
+    "ts-node": "^10.5.0",
     "typescript": "^4.4.3"
   },
   "scripts": {
-    "start": "node dist/server.ts",
+    "start": "ts-node server.ts",
     "dev": "ts-node server.ts",
     "nodemon": "nodemon"
+  },
+  "compilerOptions": {
+    "module": "CommonJS"
   }
 }
