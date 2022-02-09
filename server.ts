@@ -27,7 +27,7 @@ const app = express()
 
 app.use(express.json())                       // < --- Читает json в js
 app.use(passport.initialize())
-app.use('/', express.static(path.join(__dirname, 'client', 'build')))
+app.use('/', express.static(path.join(__dirname, 'build')))
 
 
 
@@ -55,7 +55,7 @@ app.post('/uploadBackgroundPhoto', passport.authenticate('jwt'), uploadBackgroun
 app.use(errorHandler)
 
 app.get('*', (_, res) => {
-  res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+  res.sendFile(path.resolve(__dirname, 'build', 'index.html'))
 })
 
 const PORT = process.env.PORT
